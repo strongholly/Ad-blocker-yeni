@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import '../services/ad_blocker_service.dart';
+import '../services/browser_service.dart';
 
 class BrowserView extends StatefulWidget {
   final String url;
   final AdBlockerService adBlocker;
   final VoidCallback onBlocked;
   final VoidCallback onHomePressed;
+  final String? selectedBrowser; // 🔹 eklendi
 
   const BrowserView({
     super.key,
@@ -14,6 +16,7 @@ class BrowserView extends StatefulWidget {
     required this.adBlocker,
     required this.onBlocked,
     required this.onHomePressed,
+    this.selectedBrowser, // 🔹 eklendi
   });
 
   @override
@@ -26,16 +29,16 @@ class _BrowserViewState extends State<BrowserView> {
 
   @override
   Widget build(BuildContext context) {
+    final browserSettings = widget.selectedBrowser != null
+        ? BrowserService().getSettings(widget.selectedBrowser!)
+        : InAppWebViewSettings(javaScriptEnabled: true);
+
     return Stack(
       children: [
-                InAppWebView(
+        InAppWebView(
           initialUrlRequest: URLRequest(url: WebUri(widget.url)),
-          initialSettings: InAppWebViewSettings(
-            javaScriptEnabled: true,
-          ),
-          onWebViewCreated: (controller) async {
-            _controller = controller;
-          },
+          initialSettings: browserSettings, // 👈 tarayıcı moduna göre ayar
+          onWebViewCreated: (controller) => _controller = controller,
           onLoadStart: (controller, url) {
             setState(() => _progress = 0);
           },
@@ -55,7 +58,6 @@ class _BrowserViewState extends State<BrowserView> {
               );
             }
           },
-
         ),
 
         if (_progress < 1)
@@ -65,6 +67,8 @@ class _BrowserViewState extends State<BrowserView> {
             valueColor:
                 const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
           ),
+
+        // 🔹 Navigasyon butonları
         Positioned(
           bottom: 16,
           right: 16,
