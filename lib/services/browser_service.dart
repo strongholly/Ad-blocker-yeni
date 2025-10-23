@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 class BrowserService {
@@ -7,28 +8,49 @@ class BrowserService {
   BrowserService._internal();
 
   // 🔹 Tarayıcı bilgileri
+// 🔹 Tarayıcı bilgileri
+// 🔹 Tarayıcı bilgileri
+// Tarayıcı bilgileri (gerçek logolu)
+
+
+// 🔹 Tarayıcı bilgileri (SVG ikonlara renk veriyoruz)
 Map<String, BrowserInfo> get browsers => {
   'Chrome': BrowserInfo(
     name: 'Chrome',
-    color: const Color(0xFF4285F4), // 🔵 Google Chrome Mavisi
-    icon: Icons.language, // 🌐 Chrome dünya ikonu
+    color: const Color(0xFF4285F4), // 🔵 Chrome Mavisi
+    iconWidget: SvgPicture.asset(
+      'assets/icons/googlechrome.svg',
+      colorFilter: const ColorFilter.mode(Color(0xFF4285F4), BlendMode.srcIn),
+    ),
   ),
-  'Opera': BrowserInfo(
-    name: 'Opera',
-    color: const Color(0xFFFF1B2D), // 🔴 Opera Kırmızısı
-    icon: Icons.circle, // 🅾️ benzeri kırmızı ikon
+  'DuckDuckGo': BrowserInfo(
+    name: 'DuckDuckGo',
+    color: const Color(0xFFFF6600), // 🟠 DuckDuckGo turuncusu
+    iconWidget: SvgPicture.asset(
+      'assets/icons/duckduckgo.svg',
+      colorFilter: const ColorFilter.mode(Color(0xFFFF6600), BlendMode.srcIn),
+    ),
+  ),
+  'Brave': BrowserInfo(
+    name: 'Brave',
+    color: const Color(0xFFFB542B), // 🦁 Brave turuncusu
+    iconWidget: SvgPicture.asset(
+      'assets/icons/brave.svg',
+      colorFilter: const ColorFilter.mode(Color(0xFFFB542B), BlendMode.srcIn),
+    ),
   ),
   'Yandex': BrowserInfo(
     name: 'Yandex',
-    color:  Colors.amber.shade400, // 🔴 Yandex kırmızısı
-    icon: Icons.explore, // 🧭 arama ve keşif simgesi
-  ),
-  'Tor': BrowserInfo(
-    name: 'Tor',
-    color: const Color(0xFF7E4798), // 🟣 Tor moru
-    icon: Icons.lock_outline, // 🔒 güvenli tarayıcı simgesi
+    color: Colors.amber.shade400, // 🟡 Yandex sarısı
+    iconWidget: SvgPicture.asset(
+      'assets/icons/yandexcloud.svg',
+      colorFilter: ColorFilter.mode(Colors.amber.shade400, BlendMode.srcIn),
+    ),
   ),
 };
+
+
+
 
 
   InAppWebViewSettings getSettings(String browser) {
@@ -64,15 +86,16 @@ Map<String, BrowserInfo> get browsers => {
   }
 }
 
-// 🔹 Tarayıcı bilgi modeli
 class BrowserInfo {
   final String name;
   final Color color;
-  final IconData icon;
+  final IconData? icon;       // Material Icons fallback
+  final Widget? iconWidget;   // SVG veya resim logolar
 
   BrowserInfo({
     required this.name,
     required this.color,
-    required this.icon,
+    this.icon,
+    this.iconWidget,
   });
 }

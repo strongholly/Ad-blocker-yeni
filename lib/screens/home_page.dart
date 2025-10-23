@@ -43,33 +43,36 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // 🆕 Tarayıcıya göre ana sayfa döndür
-  String _getDefaultHome(String? browser) {
-    switch (browser) {
-      case 'Opera':
-        return 'https://www.opera.com';
-      case 'Yandex':
-        return 'https://yandex.com.tr';
-      case 'Tor':
-        return 'https://duckduckgo.com/?q=';
-      default:
-        return 'https://www.google.com';
-    }
+      // 🆕 Tarayıcıya göre ana sayfa döndür
+String _getDefaultHome(String? browser) {
+  switch (browser) {
+    case 'Yandex':
+      return 'https://yandex.com.tr';
+    case 'Brave':
+      return 'https://search.brave.com/';
+    case 'DuckDuckGo':
+      return 'https://duckduckgo.com/?q=';
+    default:
+      return 'https://www.google.com';
   }
+}
 
-  // 🆕 Tarayıcıya göre arama motoru döndür
-  String _getSearchEngine(String? browser) {
-    switch (browser) {
-      case 'Opera':
-        return 'https://www.google.com/search?q=';
-      case 'Yandex':
-        return 'https://yandex.com.tr/search/?text=';
-      case 'Tor':
-        return 'https://duckduckgo.com/?q=';
-      default:
-        return 'https://www.google.com/search?q=';
-    }
+
+
+     // 🆕 Tarayıcıya göre arama motoru döndür
+String _getSearchEngine(String? browser) {
+  switch (browser) {
+    case 'Yandex':
+      return 'https://yandex.com.tr/search/?text=';
+    case 'Brave':
+      return 'https://search.brave.com/search?q=';
+    case 'DuckDuckGo':
+      return 'https://duckduckgo.com/?q=';
+    default:
+      return 'https://www.google.com/search?q=';
   }
+}
+
 
   void _onSearch(String query) {
     String defaultHome = _getDefaultHome(_selectedBrowser);
@@ -133,38 +136,49 @@ class _HomePageState extends State<HomePage> {
                 setState(() => _showBrowser = true);
               }
             },
-            child: Container(
-              width: 90,
-              margin: const EdgeInsets.symmetric(horizontal: 6),
-              decoration: BoxDecoration(
-                color: selected ? info.color.withOpacity(0.2) : Colors.grey[100],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: selected ? info.color : Colors.transparent,
-                  width: 2,
-                ),
+           child: Container(
+            width: 90,
+            margin: const EdgeInsets.symmetric(horizontal: 6),
+            decoration: BoxDecoration(
+              color: selected ? info.color.withOpacity(0.2) : Colors.grey[100],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: selected ? info.color : Colors.transparent,
+                width: 2,
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // 🔹 Eğer özel iconWidget varsa onu göster, yoksa Icon widget’ı kullan
+                if (info.iconWidget != null)
+                  SizedBox(
+                    height: 32,
+                    width: 32,
+                    child: info.iconWidget,
+                  )
+                else if (info.icon != null)
                   Icon(
                     info.icon,
                     size: 32,
                     color: info.color,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    info.name,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-                      color: selected ? info.color : Colors.grey[700],
-                    ),
+                const SizedBox(height: 6),
+                Text(
+                  info.name,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                    color: selected ? info.color : Colors.grey[700],
                   ),
-                ],
-              ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
+          )
+
+
           );
         }).toList(),
       ),

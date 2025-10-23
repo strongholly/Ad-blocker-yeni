@@ -101,43 +101,50 @@ class _BrowserViewState extends State<BrowserView> {
               boxShadow: [
                 BoxShadow(
                   color: Colors.black26,
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              if (browserInfo != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: browserInfo.color.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: browserInfo.iconWidget != null
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: browserInfo.iconWidget, // ✅ SVG veya PNG logoyu göster
+                        )
+                      : Icon(
+                          browserInfo.icon ?? Icons.language, // fallback
+                          color: browserInfo.color,
+                          size: 20,
+                        ),
                 ),
+                const SizedBox(width: 8),
+                Text(
+                  browserInfo.name,
+                  style: TextStyle(
+                    color: browserInfo.color,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  width: 1,
+                  height: 20,
+                  color: Colors.grey[300],
+                ),
+                const SizedBox(width: 12),
               ],
-            ),
-            child: Row(
-              children: [
-                if (browserInfo != null) ...[
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: browserInfo.color.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      browserInfo.icon,
-                      color: browserInfo.color,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    browserInfo.name,
-                    style: TextStyle(
-                      color: browserInfo.color,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Container(
-                    width: 1,
-                    height: 20,
-                    color: Colors.grey[300],
-                  ),
-                  const SizedBox(width: 12),
-                ],
+
                 
                 Expanded(
                   child: Text(
