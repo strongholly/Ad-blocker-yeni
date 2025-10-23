@@ -14,7 +14,7 @@ class SearchBarWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
-      color: Colors.grey[100],
+      color : Colors.transparent,
       child: TextField(
         controller: controller,
         decoration: InputDecoration(

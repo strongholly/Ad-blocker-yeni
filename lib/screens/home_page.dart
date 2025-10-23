@@ -4,6 +4,7 @@ import '../services/storage_services.dart';
 import '../widgets/search_bar.dart';
 import '../widgets/settings_sheet.dart';
 import '../widgets/stats_dialog.dart';
+import '../services/browser_service.dart';
 import 'browser_view.dart';
 import 'welcome_view.dart';
 
@@ -32,70 +33,141 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadSavedBrowser() async {
     final saved = await _storage.getSelectedBrowser();
-    if (saved != null && mounted) {
-      setState(() => _selectedBrowser = saved);
+    if (mounted) {
+      setState(() {
+        _selectedBrowser = saved ?? 'Chrome';
+      });
+      if (saved == null) {
+        await _storage.saveSelectedBrowser('Chrome');
+      }
     }
   }
 
-// 🔹 Arama yapıldığında
-void _onSearch(String query) {
-  // ✅ Tarayıcıya göre ana sayfa belirle
-  String defaultHome;
-  switch (_selectedBrowser) {
-    case 'Opera':
-      defaultHome = 'https://www.opera.com';
-      break;
-    case 'Yandex':
-      defaultHome = 'https://yandex.com';
-      break;
-    case 'Tor':
-      defaultHome = 'https://check.torproject.org';
-      break;
-    default:
-      defaultHome = 'https://www.google.com';
+  // 🆕 Tarayıcıya göre ana sayfa döndür
+  String _getDefaultHome(String? browser) {
+    switch (browser) {
+      case 'Opera':
+        return 'https://www.opera.com';
+      case 'Yandex':
+        return 'https://yandex.com.tr';
+      case 'Tor':
+        return 'https://duckduckgo.com/?q=';
+      default:
+        return 'https://www.google.com';
+    }
   }
 
-  // ✅ Boş aramada ilgili tarayıcının ana sayfasına git
-  if (query.isEmpty) {
+  // 🆕 Tarayıcıya göre arama motoru döndür
+  String _getSearchEngine(String? browser) {
+    switch (browser) {
+      case 'Opera':
+        return 'https://www.google.com/search?q=';
+      case 'Yandex':
+        return 'https://yandex.com.tr/search/?text=';
+      case 'Tor':
+        return 'https://duckduckgo.com/?q=';
+      default:
+        return 'https://www.google.com/search?q=';
+    }
+  }
+
+  void _onSearch(String query) {
+    String defaultHome = _getDefaultHome(_selectedBrowser);
+    String searchEngine = _getSearchEngine(_selectedBrowser);
+
+    if (query.trim().isEmpty) {
+      setState(() {
+        _showBrowser = true;
+        _currentUrl = defaultHome;
+      });
+      return;
+    }
+
+    String url;
+    if (query.startsWith('http')) {
+      url = query;
+    } else if (query.contains('.') && !query.contains(' ')) {
+      url = 'https://$query';
+    } else {
+      url = '$searchEngine${Uri.encodeComponent(query)}';
+    }
+
     setState(() {
       _showBrowser = true;
-      _currentUrl = defaultHome;
+      _currentUrl = url;
     });
-    return;
   }
 
-  // ✅ Normal arama davranışı
-  String url = query.startsWith('http')
-      ? query
-      : query.contains('.')
-          ? 'https://$query'
-          : 'https://www.google.com/search?q=${Uri.encodeComponent(query)}';
-
-  setState(() {
-    _showBrowser = true;
-    _currentUrl = url;
-  });
-}
-
-
-  // 🔹 Tarayıcı seçimi butonları
   Widget _buildBrowserSelector() {
-    final browsers = ['Chrome', 'Opera', 'Yandex', 'Tor'];
-    return Wrap(
-      alignment: WrapAlignment.center,
-      spacing: 8,
-      children: browsers.map((browser) {
-        final selected = _selectedBrowser == browser;
-        return ChoiceChip(
-          label: Text(browser),
-          selected: selected,
-          selectedColor: Colors.green.shade300,
-          onSelected: (_) async {
-            setState(() => _selectedBrowser = browser);
-            await _storage.saveSelectedBrowser(browser);
-          },
-        );
-      }).toList(),
+    final browserService = BrowserService();
+    final browsers = browserService.browsers;
+
+    return SizedBox(
+      height: 90,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 2),
+        children: browsers.entries.map((entry) {
+          final browser = entry.key;
+          final info = entry.value;
+          final selected = _selectedBrowser == browser;
+
+          return GestureDetector(
+            onTap: () async {
+              // 🆕 Önce browser'ı kapat
+              setState(() => _showBrowser = false);
+              
+              // 🆕 Tarayıcıyı değiştir
+              setState(() => _selectedBrowser = browser);
+              await _storage.saveSelectedBrowser(browser);
+              
+              // 🆕 Yeni tarayıcının ana sayfasını URL olarak ayarla
+              String newHome = _getSearchEngine(browser);
+              setState(() => _currentUrl = newHome);
+              
+              // 🆕 Kısa bir gecikme sonra tekrar aç
+              await Future.delayed(const Duration(milliseconds: 100));
+              
+              // 🆕 Yeni tarayıcıyla aç
+              if (mounted) {
+                setState(() => _showBrowser = true);
+              }
+            },
+            child: Container(
+              width: 90,
+              margin: const EdgeInsets.symmetric(horizontal: 6),
+              decoration: BoxDecoration(
+                color: selected ? info.color.withOpacity(0.2) : Colors.grey[100],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: selected ? info.color : Colors.transparent,
+                  width: 2,
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(
+                    info.icon,
+                    size: 32,
+                    color: info.color,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    info.name,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                      color: selected ? info.color : Colors.grey[700],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 
@@ -120,9 +192,18 @@ void _onSearch(String query) {
 
   @override
   Widget build(BuildContext context) {
+    final browserService = BrowserService();
+    final selectedBrowserInfo = _selectedBrowser != null
+        ? browserService.browsers[_selectedBrowser!]
+        : null;
+    final browserColor = selectedBrowserInfo?.color ?? Colors.grey;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Pro Ad Blocker ${_selectedBrowser != null ? "(${_selectedBrowser!})" : ""}'),
+        backgroundColor: browserColor.withOpacity(0.15),
+        title: Text(
+          'Pro Ad Blocker ${_selectedBrowser != null ? "($_selectedBrowser!)" : ""}',
+        ),
         actions: [
           IconButton(icon: const Icon(Icons.bar_chart), onPressed: _showStats),
           Row(
@@ -130,6 +211,7 @@ void _onSearch(String query) {
               const Text('Engelle', style: TextStyle(fontSize: 13)),
               Switch(
                 value: _adBlocker.isEnabled,
+                activeColor: browserColor,
                 onChanged: (value) async {
                   await _adBlocker.setEnabled(value);
                   setState(() {});
@@ -143,19 +225,28 @@ void _onSearch(String query) {
       ),
       body: Column(
         children: [
-          const SizedBox(height: 8),
-          _buildBrowserSelector(),
-          const SizedBox(height: 8),
-          SearchBarWidget(
-            controller: _searchController,
-            onSearch: _onSearch,
+          Container(
+            color: browserColor.withOpacity(0.15),
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Column(
+              children: [
+                _buildBrowserSelector(),
+                const SizedBox(height: 8),
+                SearchBarWidget(
+                  controller: _searchController,
+                  onSearch: _onSearch,
+                ),
+              ],
+            ),
           ),
+
           Expanded(
             child: _showBrowser
                 ? BrowserView(
+                    key: ValueKey('${_selectedBrowser}_$_currentUrl'), // 🆕 Hem browser hem URL ile key
                     url: _currentUrl,
                     adBlocker: _adBlocker,
-                    selectedBrowser: _selectedBrowser, // 👈 önemli kısım
+                    selectedBrowser: _selectedBrowser,
                     onBlocked: () => setState(() => _sessionBlockedCount++),
                     onHomePressed: () => setState(() => _showBrowser = false),
                   )

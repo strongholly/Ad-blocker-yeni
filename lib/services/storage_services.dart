@@ -1,4 +1,4 @@
-import 'package:ad_blocker_fix/models/blocked_request.dart';
+import 'package:ad_blocker_yeni/models/blocked_request.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
